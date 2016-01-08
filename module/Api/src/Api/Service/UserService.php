@@ -9,6 +9,7 @@ use Zend\Db\Sql\Insert;
 use Zend\Db\Sql\Select;
 use Zend\Db\Sql\Sql;
 use Zend\Db\Sql\Update;
+use Zend\Db\Sql\Where;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\ServiceManager;
 use Zend\ServiceManager\ServiceManagerAwareInterface;
@@ -55,17 +56,23 @@ class UserService implements ServiceManagerAwareInterface
     {
         $sql = new Sql($this->getAdaptor());
         $select = $sql->select('user');
-        $select->where(array(
-            'email = ?' => $email,
-            'password= ?' => $pass
-        ));
+        $criteria = new Where();
+        $criteria->equalTo('password', md5($pass));
+        $criteria->equalTo('email', $email);
+        $criteria->OR->equalTo('username', $email);
+        $select->where($criteria);
         $statment = $sql->prepareStatementForSqlObject($select);
         $result = $statment->execute();
-
         if ($result instanceof ResultInterface && $result->isQueryResult() && $result->getAffectedRows()) {
-            return 'yes';
+            return array(
+                'isValidUser' => true,
+                'user' => $result->current()
+            );
         } else {
-            return 'no';
+            return array(
+                'isValidUser' => false,
+                'user' => null
+            );
         }
         throw new \InvalidArgumentException("Member not found with given email :{$email} not found.");
     }

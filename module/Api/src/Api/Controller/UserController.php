@@ -53,9 +53,7 @@ class UserController extends AbstractRestfulController
         $pass = $this->params()->fromPost('password');
         $service = $this->getUserService();
         if (!is_null($email) && !is_null($pass)) {
-            return new JsonModel(array(
-                'isValidUser' => $service->userLogin($email, $pass)
-            ));
+            return new JsonModel($service->userLogin($email, $pass));
         }
         throw new \Exception('invalid arguments for user login');
     }
