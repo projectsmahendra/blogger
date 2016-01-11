@@ -188,7 +188,7 @@ class User
             'name' => 'user_id',
             'required' => true,
             'filters' => array(
-                array('name' => 'Int'),
+                array('name' => 'int'),
             ),
         ));
         $inputFilter->add(array(

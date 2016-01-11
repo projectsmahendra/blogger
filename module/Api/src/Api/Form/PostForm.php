@@ -40,5 +40,10 @@ class PostForm extends Form
             'type' => 'Hidden',
 
         ));
+        $this->add(array(
+            'name' => 'authorId',
+            'type' => 'Hidden',
+
+        ));
     }
 }

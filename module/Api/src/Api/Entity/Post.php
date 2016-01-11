@@ -85,6 +85,7 @@ class Post
     public function inputFilter()
     {
         $inputFilter = new InputFilter();
+
         $inputFilter->add(array(
             'name' => 'title',
             'required' => true,
@@ -99,13 +100,15 @@ class Post
                 array('name' => 'StringTrim'),
             ),
         ));
+
         $inputFilter->add(array(
             'name' => 'authorId',
             'required' => true,
             'filters' => array(
-                array('name' => 'Int'),
+                array('name' => 'int'),
             ),
         ));
+
         return $inputFilter;
     }
 }
