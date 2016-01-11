@@ -2,7 +2,6 @@
 
 namespace Api\Controller;
 
-use Api\Entity\User;
 use Api\Form\UserForm;
 use Zend\Mvc\Controller\AbstractRestfulController;
 use Zend\View\Model\JsonModel;
@@ -24,8 +23,11 @@ class UserController extends AbstractRestfulController
     {
         $users = array();
         foreach ($this->getUserService()->getUsersList() as $user) {
+
             $users[] = array(
-                'email' => $user->getEmail()
+                'id' => $user->getUserId(),
+                'email' => $user->getEmail(),
+                'name' => $user->getDisplayName()
             );
         }
         return new JsonModel(
@@ -48,18 +50,42 @@ class UserController extends AbstractRestfulController
 
     public function userLoginAction()
     {
-
+        $response = array();
         $email = $this->params()->fromPost('email');
         $pass = $this->params()->fromPost('password');
         $service = $this->getUserService();
         if (!is_null($email) && !is_null($pass)) {
-            return new JsonModel($service->userLogin($email, $pass));
+            try {
+                $serviceResponse = $service->userLogin($email, $pass);
+                $response = array(
+                    'status' => true,
+                    'data' => $serviceResponse,
+                    'message' => ''
+                );
+            } catch (\Exception $e) {
+                $response = array(
+                    'status' => false,
+                    'exception' => 'INVALID_USER',
+                    'data' => null,
+                    'message' => $e->getMessage()
+                );
+            }
+
+        } else {
+            $response = array(
+                'status' => false,
+                'exception' => 'INVALID_DATA',
+                'data' => null,
+                'message' => 'Please Provide valid Email and Password'
+            );
+
         }
-        throw new \Exception('invalid arguments for user login');
+        return new JsonModel($response);
     }
 
     public function registerAction()
     {
+        $response = array();
         $service = $this->getUserService();
         $request = $this->getRequest();
         $userForm = new UserForm();
@@ -68,17 +94,30 @@ class UserController extends AbstractRestfulController
         $userForm->setInputFilter($userModel->inputFilter());
         $userForm->setData($request->getPost());
         if ($userForm->isValid()) {
-            $userModel->exchangeArray($userForm->getData());
-            $model = $service->save($userModel);
-            return new JsonModel(
-                array(
-                    'data' => $model
-                )
-            );
+            try {
+                $userModel->exchangeArray($userForm->getData());
+                $model = $service->save($userModel);
+                $response = array(
+                    'status' => true,
+                    'data' => $model,
+                    'message' => ''
+                );
+            } catch (\Exception $e) {
+                $response = array(
+                    'status' => false,
+                    'exception' => 'SERVICE_ERROR',
+                    'data' => null,
+                    'message' => $e->getMessage()
+                );
+            }
         } else {
-            throw new \Exception('Please Provide valid data and try again.');
+            $response = array(
+                'status' => false,
+                'exception' => 'INVALID_DATA',
+                'data' => $userForm->getMessages(),
+                'message' => 'Please Provide valid data'
+            );
         }
-        throw new \Exception('An error occurred during execution; please try again later.');
-
+        return new JsonModel($response);
     }
 }

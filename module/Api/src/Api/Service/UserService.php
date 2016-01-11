@@ -68,13 +68,8 @@ class UserService implements ServiceManagerAwareInterface
                 'isValidUser' => true,
                 'user' => $result->current()
             );
-        } else {
-            return array(
-                'isValidUser' => false,
-                'user' => null
-            );
         }
-        throw new \InvalidArgumentException("Member not found with given email :{$email} not found.");
+        throw new \InvalidArgumentException("Member with given email :{$email} not found.");
     }
 
     public function save(\Api\Entity\User $user)
@@ -82,7 +77,7 @@ class UserService implements ServiceManagerAwareInterface
         $hydrator = $this->getHydrator();
         $action = null;
         $postData = $hydrator->extract($user);
-        if ($user->getUser_id()) {
+        if ($user->getUserId()) {
             $action = new Update('user');
             $action->set($postData);
             $action->where(array(
@@ -103,14 +98,14 @@ class UserService implements ServiceManagerAwareInterface
             }
             return $hydrator->extract($user);
         }
-        throw new \Exception('something went wrong');
+        throw new \Exception('something went wrong.Please try again later');
     }
 
 
     private function getHydrator()
     {
         if (!$this->hydrator) {
-            $this->hydrator = new ClassMethods(false);
+            $this->hydrator = new ClassMethods();
         }
         return $this->hydrator;
     }
@@ -118,7 +113,7 @@ class UserService implements ServiceManagerAwareInterface
     private function getProtoType()
     {
         if (!$this->protoType) {
-            $this->protoType = new User();
+            $this->protoType = new \Api\Entity\User();
         }
         return $this->protoType;
     }

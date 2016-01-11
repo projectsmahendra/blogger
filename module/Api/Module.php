@@ -21,12 +21,6 @@ class Module implements AutoloaderProviderInterface, ServiceProviderInterface, C
 
         $eventManager->attach(MvcEvent::EVENT_DISPATCH_ERROR, array($this, 'onDispatchError'));
         $eventManager->attach(MvcEvent::EVENT_RENDER_ERROR, array($this, 'onRenderError'));
-        $eventManager->attach(MvcEvent::EVENT_RENDER, array($this, 'onFinish'));
-    }
-
-    public function onFinish($e)
-    {
-        return $this->getJsonModelResponse($e);
     }
 
     public function onDispatchError(MvcEvent $e)
@@ -37,22 +31,6 @@ class Module implements AutoloaderProviderInterface, ServiceProviderInterface, C
     public function onRenderError($e)
     {
         return $this->getJsonModelError($e);
-    }
-
-
-    public function getJsonModelResponse(MvcEvent $e)
-    {
-        $error = $e->getError();
-        if ($error) {
-            return;
-        }
-        $model = new JsonModel(array(
-            'status' => true,
-            'data' => $e->getViewModel()->getVariables(),
-            'message' => ''
-        ));
-        $e->setViewModel($model);
-        return $model;
     }
 
     public function getJsonModelError(MvcEvent $e)

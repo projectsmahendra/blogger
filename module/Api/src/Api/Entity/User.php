@@ -28,7 +28,7 @@ class User
     private $data;
 
 
-    public function getUser_id()
+    public function getUserId()
     {
         return $this->user_id;
     }
@@ -48,15 +48,25 @@ class User
         return $this->email;
     }
 
+    public function setEmail($email)
+    {
+        $this->email = $email;
+    }
+
     public function getPassword()
     {
         return $this->password;
     }
 
 
-    public function getDisplay_name()
+    public function getDisplayName()
     {
         return $this->displayName;
+    }
+
+    public function setDisplayName($name)
+    {
+        $this->displayName = $name;
     }
 
     public function setData($data)
