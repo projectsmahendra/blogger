@@ -21,31 +21,65 @@ class UserController extends AbstractRestfulController
 
     public function indexAction()
     {
-        $users = array();
-        foreach ($this->getUserService()->getUsersList() as $user) {
+        $response = array();
+        try {
+            $users = array();
+            foreach ($this->getUserService()->getUsersList() as $user) {
+                $users[] = array(
+                    'id' => $user->getUserId(),
+                    'email' => $user->getEmail(),
+                    'name' => $user->getDisplayName()
+                );
+            }
+            $response = array(
+                'status' => true,
+                'data' => $users,
+                'message' => ''
+            );
 
-            $users[] = array(
-                'id' => $user->getUserId(),
-                'email' => $user->getEmail(),
-                'name' => $user->getDisplayName()
+
+        } catch (\Exception $e) {
+            $response = array(
+                'status' => false,
+                'exception' => 'SERVICE_ERROR',
+                'data' => null,
+                'message' => $e->getMessage()
             );
         }
-        return new JsonModel(
-            array(
-                'users' => $users
-            )
-        );
+        return new JsonModel($response);
     }
 
     public function viewAction()
     {
+        $response = array();
         $id = $this->params()->fromRoute('id');
         if (!is_null($id)) {
-            return new JsonModel(array(
-                'member' => $this->getUserService()->getUser($id)->getEmail()
-            ));
+            try {
+                $user = $this->getUserService()->getUser($id);
+                $response = array(
+                    'status' => true,
+                    'data' => $user,
+                    'message' => ''
+                );
+
+            } catch (\Exception $e) {
+                $response = array(
+                    'status' => false,
+                    'exception' => 'SERVICE_ERROR',
+                    'data' => null,
+                    'message' => $e->getMessage()
+                );
+            }
+
+        } else {
+            $response = array(
+                'status' => false,
+                'exception' => 'INVALID_DATA',
+                'data' => null,
+                'message' => 'Please Provide valid user info'
+            );
         }
-        throw new \Exception('invalid params');
+        return new JsonModel($response);
     }
 
     public function userLoginAction()

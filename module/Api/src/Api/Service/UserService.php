@@ -45,9 +45,8 @@ class UserService implements ServiceManagerAwareInterface
         ));
         $statment = $sql->prepareStatementForSqlObject($select);
         $result = $statment->execute();
-
         if ($result instanceof ResultInterface && $result->isQueryResult() && $result->getAffectedRows()) {
-            return $this->getHydrator()->hydrate($result->current(), $this->getProtoType());
+            return $result->current();
         }
         throw new \InvalidArgumentException("Member not found with given ID:{$id} not found.");
     }
