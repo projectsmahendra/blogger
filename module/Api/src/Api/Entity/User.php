@@ -90,11 +90,6 @@ class User
         $this->state = (!empty($data['state'])) ? $data['state'] : null;
     }
 
-//    public function getArrayCopy()
-//    {
-//        return get_object_vars($this);
-//    }
-
     public function setInputFilter(InputFilterInterface $inputFilter)
     {
         //not used
@@ -139,17 +134,11 @@ class User
         return $uniqueValidator;
     }
 
-    public function inputFilter()
+    public function insertInputFilter()
     {
         if (!$this->inputFilter) {
             $inputFilter = new InputFilter();
-            $inputFilter->add(array(
-                'name' => 'user_id',
-                'required' => true,
-                'filters' => array(
-                    array('name' => 'Int'),
-                ),
-            ));
+
             $inputFilter->add(array(
                 'name' => 'username',
                 'required' => true,
@@ -191,5 +180,33 @@ class User
         }
         return $this->inputFilter;
     }
+
+    public function updateInputFilter()
+    {
+        $inputFilter = new InputFilter();
+        $inputFilter->add(array(
+            'name' => 'user_id',
+            'required' => true,
+            'filters' => array(
+                array('name' => 'Int'),
+            ),
+        ));
+        $inputFilter->add(array(
+            'name' => 'displayName',
+            'required' => true,
+            'filters' => array(
+                array('name' => 'StringTrim'),
+            ),
+        ));
+        $inputFilter->add(array(
+            'name' => 'password',
+            'required' => true,
+            'filters' => array(
+                array('name' => 'StringTrim'),
+            ),
+        ));
+        return $inputFilter;
+    }
+
 
 }

@@ -1,10 +1,12 @@
 <?php
 use Api\Controller\UserController;
+use Api\Controller\PostController;
 
 return array(
     'controllers' => array(
         'invokables' => array(
-            'apiUser' => UserController::class
+            'apiUser' => UserController::class,
+            'apiPost' => PostController::class,
         ),
     ),
     'router' => array(
@@ -50,6 +52,50 @@ return array(
 
                             'defaults' => array(
                                 'action' => 'register'
+                            ),
+                        ),
+                    ),
+                    'user-update' => array(
+                        'type' => 'literal',
+                        'options' => array(
+                            'route' => '/update',
+
+                            'defaults' => array(
+                                'action' => 'update'
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            'apiPostRoutes' => array(
+                'type' => 'Literal',
+                'options' => array(
+                    'route' => '/api/post',
+                    'defaults' => array(
+                        'controller' => 'apiPost',
+                        'action' => 'index'
+                    ),
+                ),
+                'may_terminate' => true,
+                'child_routes' => array(
+                    'view' => array(
+                        'type' => 'segment',
+                        'options' => array(
+                            'route' => '/view/[:id]',
+                            'constraints' => array(
+                                'id' => '[0-9]+'
+                            ),
+                            'defaults' => array(
+                                'action' => 'view'
+                            ),
+                        ),
+                    ),
+                    'post-add' => array(
+                        'type' => 'literal',
+                        'options' => array(
+                            'route' => '/add',
+                            'defaults' => array(
+                                'action' => 'add'
                             ),
                         ),
                     ),

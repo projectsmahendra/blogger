@@ -115,6 +115,10 @@ return [
                     'controller' => 'apiUser',
                     'roles' => ['guest']
                 ],
+                [
+                    'controller' => 'apiPost',
+                    'roles' => ['guest']
+                ],
             ],
         ],
     ],

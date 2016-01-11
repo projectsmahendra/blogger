@@ -3,6 +3,7 @@
 namespace Api;
 
 use Api\Entity\User;
+use Api\Service\PostService;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
 use Zend\ModuleManager\Feature\ServiceProviderInterface;
@@ -39,7 +40,6 @@ class Module implements AutoloaderProviderInterface, ServiceProviderInterface, C
         if (!$error) {
             return;
         }
-        $response = $e->getResponse();
         $exception = $e->getParam('exception');
         $exceptionJson = array();
         if ($exception) {
@@ -56,7 +56,7 @@ class Module implements AutoloaderProviderInterface, ServiceProviderInterface, C
         if ($error == 'error-router-no-match') {
             $errorJson['message'] = 'Resource not found.';
         }
-        $model = new JsonModel(array('errors' => array($errorJson)));
+        $model = new JsonModel($errorJson);
         $e->setResult($model);
         return $model;
     }
@@ -85,6 +85,7 @@ class Module implements AutoloaderProviderInterface, ServiceProviderInterface, C
         return array(
             'invokables' => array(
                 'api_user_service' => UserService::class,
+                'api_post_service' => PostService::class,
 
             ),
             'factories' => array(

@@ -1,39 +1,40 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: mahendra
+ * Date: 11/1/16
+ * Time: 2:57 PM
+ */
 
 namespace Api\Controller;
 
-use Api\Form\UserForm;
+
+use Api\Entity\Post;
+use Api\Form\PostForm;
 use Zend\Mvc\Controller\AbstractRestfulController;
 use Zend\View\Model\JsonModel;
 
-class UserController extends AbstractRestfulController
+class PostController extends AbstractRestfulController
 {
+    private $postService;
 
-    private $userService;
-
-    private function getUserService()
-    {
-        if (!$this->userService) {
-            $this->userService = $this->getServiceLocator()->get('api_user_service');
-        }
-        return $this->userService;
-    }
 
     public function indexAction()
     {
         $response = array();
         try {
-            $users = array();
-            foreach ($this->getUserService()->getUsersList() as $user) {
-                $users[] = array(
-                    'id' => $user->getUserId(),
-                    'email' => $user->getEmail(),
-                    'name' => $user->getDisplayName()
+            $posts = array();
+            foreach ($this->getPostService()->getPostList() as $post) {
+                $posts[] = array(
+                    'id' => $post->getId(),
+                    'title' => $post->getTitle(),
+                    'description' => $post->getDescription(),
+                    'author' => $post->getAuthor()
                 );
             }
             $response = array(
                 'status' => true,
-                'data' => $users,
+                'data' => $posts,
                 'message' => ''
             );
 
@@ -55,10 +56,10 @@ class UserController extends AbstractRestfulController
         $id = $this->params()->fromRoute('id');
         if (!is_null($id)) {
             try {
-                $user = $this->getUserService()->getUser($id);
+                $post = $this->getPostService()->getPost($id);
                 $response = array(
                     'status' => true,
-                    'data' => $user,
+                    'data' => $post,
                     'message' => ''
                 );
 
@@ -76,7 +77,7 @@ class UserController extends AbstractRestfulController
                 'status' => false,
                 'exception' => 'INVALID_DATA',
                 'data' => null,
-                'message' => 'Please Provide valid user info'
+                'message' => 'Please Provide valid post info'
             );
         }
         return new JsonModel($response);
@@ -87,7 +88,7 @@ class UserController extends AbstractRestfulController
         $response = array();
         $email = $this->params()->fromPost('email');
         $pass = $this->params()->fromPost('password');
-        $service = $this->getUserService();
+        $service = $this->getPostService();
         if (!is_null($email) && !is_null($pass)) {
             try {
                 $serviceResponse = $service->userLogin($email, $pass);
@@ -117,19 +118,18 @@ class UserController extends AbstractRestfulController
         return new JsonModel($response);
     }
 
-    public function registerAction()
+    public function addAction()
     {
         $response = array();
-        $service = $this->getUserService();
+        $service = $this->getPostService();
         $request = $this->getRequest();
-        $userForm = new UserForm();
-        $userModel = $this->getServiceLocator()->get('api_user_entity');
-        $userModel->setData($request->getPost());
-        $userForm->setInputFilter($userModel->insertInputFilter());
-        $userForm->setData($request->getPost());
-        if ($userForm->isValid()) {
+        $postForm = new PostForm();
+        $userModel = new Post();
+        $postForm->setInputFilter($userModel->inputFilter());
+        $postForm->setData($request->getPost());
+        if ($postForm->isValid()) {
             try {
-                $userModel->exchangeArray($userForm->getData());
+                $userModel->exchangeArray($postForm->getData());
                 $model = $service->save($userModel);
                 $response = array(
                     'status' => true,
@@ -148,48 +148,18 @@ class UserController extends AbstractRestfulController
             $response = array(
                 'status' => false,
                 'exception' => 'INVALID_DATA',
-                'data' => $userForm->getMessages(),
+                'data' => $postForm->getMessages(),
                 'message' => 'Please Provide valid data'
             );
         }
         return new JsonModel($response);
     }
 
-    public function updateAction()
+    private function getPostService()
     {
-        $response = array();
-        $service = $this->getUserService();
-        $request = $this->getRequest();
-        $userForm = new UserForm();
-        $userModel = $this->getServiceLocator()->get('api_user_entity');
-        $userModel->setData($request->getPost());
-        $userForm->setInputFilter($userModel->updateInputFilter('update'));
-        $userForm->setData($request->getPost());
-        if ($userForm->isValid()) {
-            try {
-                $userModel->exchangeArray($userForm->getData());
-                $model = $service->update($userModel);
-                $response = array(
-                    'status' => true,
-                    'data' => $model,
-                    'message' => ''
-                );
-            } catch (\Exception $e) {
-                $response = array(
-                    'status' => false,
-                    'exception' => 'SERVICE_ERROR',
-                    'data' => null,
-                    'message' => $e->getMessage()
-                );
-            }
-        } else {
-            $response = array(
-                'status' => false,
-                'exception' => 'INVALID_DATA',
-                'data' => $userForm->getMessages(),
-                'message' => 'Please Provide valid data'
-            );
+        if (!$this->postService) {
+            $this->postService = $this->getServiceLocator()->get('api_post_service');
         }
-        return new JsonModel($response);
+        return $this->postService;
     }
 }

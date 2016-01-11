@@ -4,17 +4,13 @@ namespace Api\Service;
 
 use Zend\Db\Adapter\Driver\ResultInterface;
 use Zend\Db\ResultSet\HydratingResultSet;
-use Zend\Db\ResultSet\ResultSetInterface;
 use Zend\Db\Sql\Insert;
-use Zend\Db\Sql\Select;
 use Zend\Db\Sql\Sql;
 use Zend\Db\Sql\Update;
 use Zend\Db\Sql\Where;
-use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\ServiceManager;
 use Zend\ServiceManager\ServiceManagerAwareInterface;
 use Zend\Stdlib\Hydrator\ClassMethods;
-use ZfcUser\Entity\User;
 
 class UserService implements ServiceManagerAwareInterface
 {
@@ -74,28 +70,48 @@ class UserService implements ServiceManagerAwareInterface
     public function save(\Api\Entity\User $user)
     {
         $hydrator = $this->getHydrator();
-        $action = null;
-        $postData = $hydrator->extract($user);
-        if ($user->getUserId()) {
-            $action = new Update('user');
-            $action->set($postData);
-            $action->where(array(
-                'user_id = ?' => $user->getUser_id()
-            ));
-        } else {
-            $action = new Insert('user');
-            $action->values($postData);
-        }
+        $postData = array(
+            'display_name' => $user->getEmail(),
+            'password' => $user->getPassword(),
+        );
+        $postData = array_merge($postData, array(
+            'email' => $user->getEmail(),
+            'username' => $user->getUsername()
+        ));
+        $insert = new Insert('user');
+        $insert->values($postData);
         $sql = new Sql($this->getAdaptor());
-        $statement = $sql->prepareStatementForSqlObject($action);
-
+        $statement = $sql->prepareStatementForSqlObject($insert);
         $result = $statement->execute();
-
         if ($result instanceof ResultInterface) {
             if ($pk = $result->getGeneratedValue()) {
                 $user->setUserId($pk);
             }
             return $hydrator->extract($user);
+        }
+        throw new \Exception('something went wrong.Please try again later');
+    }
+
+    public function update(\Api\Entity\User $user)
+    {
+        $hydrator = $this->getHydrator();
+        $postData = array(
+            'display_name' => $user->getDisplayName(),
+            'password' => $user->getPassword(),
+        );
+        $update = new Update('user');
+        $update->set($postData);
+        $update->where(array(
+            'user_id = ?' => $user->getUserId()
+        ));
+        $sql = new Sql($this->getAdaptor());
+        $statement = $sql->prepareStatementForSqlObject($update);
+        $result = $statement->execute();
+        if ($result instanceof ResultInterface) {
+            if ($pk = $result->getGeneratedValue()) {
+                $user->setUserId($pk);
+            }
+            return $this->getUser($user->getUserId());
         }
         throw new \Exception('something went wrong.Please try again later');
     }
