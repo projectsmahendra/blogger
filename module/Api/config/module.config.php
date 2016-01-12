@@ -1,12 +1,14 @@
 <?php
 use Api\Controller\UserController;
 use Api\Controller\PostController;
+use Api\Controller\CommentController;
 
 return array(
     'controllers' => array(
         'invokables' => array(
             'apiUser' => UserController::class,
             'apiPost' => PostController::class,
+            'apiComment' => CommentController::class
         ),
     ),
     'router' => array(
@@ -91,6 +93,40 @@ return array(
                         ),
                     ),
                     'post-add' => array(
+                        'type' => 'literal',
+                        'options' => array(
+                            'route' => '/add',
+                            'defaults' => array(
+                                'action' => 'add'
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            'apiCommentRoutes' => array(
+                'type' => 'Literal',
+                'options' => array(
+                    'route' => '/api/comment',
+                    'defaults' => array(
+                        'controller' => 'apiComment',
+                        'action' => 'index'
+                    ),
+                ),
+                'may_terminate' => true,
+                'child_routes' => array(
+                    'view' => array(
+                        'type' => 'segment',
+                        'options' => array(
+                            'route' => '/view/[:id]',
+                            'constraints' => array(
+                                'id' => '[0-9]+'
+                            ),
+                            'defaults' => array(
+                                'action' => 'view'
+                            ),
+                        ),
+                    ),
+                    'comment-add' => array(
                         'type' => 'literal',
                         'options' => array(
                             'route' => '/add',

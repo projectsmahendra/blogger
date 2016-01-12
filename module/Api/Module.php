@@ -3,6 +3,7 @@
 namespace Api;
 
 use Api\Entity\User;
+use Api\Service\CommentService;
 use Api\Service\PostService;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
@@ -86,6 +87,7 @@ class Module implements AutoloaderProviderInterface, ServiceProviderInterface, C
             'invokables' => array(
                 'api_user_service' => UserService::class,
                 'api_post_service' => PostService::class,
+                'api_comment_service' => CommentService::class,
 
             ),
             'factories' => array(

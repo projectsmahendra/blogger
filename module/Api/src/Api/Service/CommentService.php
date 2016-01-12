@@ -2,38 +2,45 @@
 /**
  * Created by PhpStorm.
  * User: mahendra
- * Date: 11/1/16
- * Time: 3:00 PM
+ * Date: 12/1/16
+ * Time: 10:37 AM
  */
 
 namespace Api\Service;
 
 
+use Api\Entity\Comment;
+use Zend\ServiceManager\ServiceManager;
+use Zend\ServiceManager\ServiceManagerAwareInterface;
 use Zend\Db\Adapter\Driver\ResultInterface;
 use Zend\Db\ResultSet\HydratingResultSet;
 use Zend\Db\Sql\Insert;
 use Zend\Db\Sql\Sql;
 use Zend\Db\Sql\Update;
-use Zend\ServiceManager\ServiceManager;
-use Zend\ServiceManager\ServiceManagerAwareInterface;
 use Zend\Stdlib\Hydrator\ClassMethods;
+use Zend\Stdlib\Hydrator\Filter\FilterComposite;
+use Zend\Stdlib\Hydrator\Filter\MethodMatchFilter;
 
-class PostService implements ServiceManagerAwareInterface
+
+class CommentService implements ServiceManagerAwareInterface
 {
     private $serviceManager = null;
     private $hydrator = null;
     private $protoType = null;
     private $adaptor = null;
 
-    public function getPostList($page, $limit)
+    public function getCommentList($postId, $page, $limit)
     {
         $sql = new Sql($this->getAdaptor());
         $select = $sql->select(array(
-            'p' => 'posts'
+            'p' => 'comments'
         ));
         $select->join(array(
             'u' => 'user'
         ), 'p.author_id=u.user_id', array('author' => 'display_name'));
+        $select->where(array(
+            'post_id = ?' => $postId
+        ));
         $select->limit(intval($limit));
         $select->offset(intval($limit) * (intval($page) - 1));
         $statement = $sql->prepareStatementForSqlObject($select);
@@ -45,11 +52,11 @@ class PostService implements ServiceManagerAwareInterface
         return array();
     }
 
-    public function getPost($id)
+    public function getComment($id)
     {
         $sql = new Sql($this->getAdaptor());
         $select = $sql->select(array(
-            'p' => 'posts'
+            'p' => 'comments'
         ));
         $select->where(array(
             'id = ?' => $id
@@ -62,37 +69,38 @@ class PostService implements ServiceManagerAwareInterface
         if ($result instanceof ResultInterface && $result->isQueryResult() && $result->getAffectedRows()) {
             return $result->current();
         }
-        throw new \InvalidArgumentException("Post not found with given ID:{$id} not found.");
+        throw new \InvalidArgumentException("Comment not found with given ID:{$id} not found.");
     }
 
-
-    public function save(\Api\Entity\Post $post)
+    public function save(Comment $comment)
     {
         $hydrator = $this->getHydrator();
-        $action = null;
-        $postData = array(
-            'title' => $post->getTitle(),
-            'description' => $post->getDescription(),
+        $hydrator->addFilter(
+            "inputFilter",
+            new MethodMatchFilter("getInputFilter"),
+            FilterComposite::CONDITION_AND
         );
-        if ($post->getId()) {
-            $action = new Update('posts');
-            $action->set($postData);
-            $action->where(array(
-                'id = ?' => $post->getId()
-            ));
-        } else {
-            $postData['author_id'] = $post->getAuthorId();
-            $action = new Insert('posts');
-            $action->values($postData);
-        }
+        $hydrator->addFilter(
+            "array_copy",
+            new MethodMatchFilter("getArrayCopy"),
+            FilterComposite::CONDITION_AND
+        );
+        $hydrator->addFilter(
+            "getAuthor",
+            new MethodMatchFilter("getAuthor"),
+            FilterComposite::CONDITION_AND
+        );
+        $postData = $hydrator->extract($comment);
+        $insert = new Insert('comments');
+        $insert->values($postData);
         $sql = new Sql($this->getAdaptor());
-        $statement = $sql->prepareStatementForSqlObject($action);
+        $statement = $sql->prepareStatementForSqlObject($insert);
         $result = $statement->execute();
         if ($result instanceof ResultInterface) {
             if ($pk = $result->getGeneratedValue()) {
-                $post->setId($pk);
+                $comment->setId($pk);
             }
-            return $this->getPost($post->getId());
+            return $this->getComment($comment->getId());
         }
         throw new \Exception('something went wrong.Please try again later');
     }
@@ -109,7 +117,7 @@ class PostService implements ServiceManagerAwareInterface
     private function getProtoType()
     {
         if (!$this->protoType) {
-            $this->protoType = new \Api\Entity\Post();
+            $this->protoType = new \Api\Entity\Comment();
         }
         return $this->protoType;
     }
@@ -129,4 +137,5 @@ class PostService implements ServiceManagerAwareInterface
         }
         return $this->serviceManager;
     }
+
 }

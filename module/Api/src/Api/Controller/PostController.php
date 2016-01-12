@@ -23,8 +23,10 @@ class PostController extends AbstractRestfulController
     {
         $response = array();
         try {
+            $page = $this->params()->fromPost('page', 1);
+            $limit = $this->params()->fromPost('limit', 10);
             $posts = array();
-            foreach ($this->getPostService()->getPostList() as $post) {
+            foreach ($this->getPostService()->getPostList($page, $limit) as $post) {
                 $posts[] = array(
                     'id' => $post->getId(),
                     'title' => $post->getTitle(),

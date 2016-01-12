@@ -119,6 +119,10 @@ return [
                     'controller' => 'apiPost',
                     'roles' => ['guest']
                 ],
+                [
+                    'controller' => 'apiComment',
+                    'roles' => ['guest']
+                ],
             ],
         ],
     ],
